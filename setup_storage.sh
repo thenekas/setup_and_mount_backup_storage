@@ -6,8 +6,10 @@ if [ "$EUID" -ne 0 ]; then
         exit 1
 fi
 
-CONF="$(dirname "$0")/backup_storage.conf"
+CONF="$(dirname "$0")/setup_storage.conf"
 source "$CONF"
+
+echo "DEBUG: DEVICE=$DEVICE MOUNT=$MOUNT_POINT"
 
 if [ ! -b "$DEVICE" ]; then
 	echo "Device $DEVICE not found"
@@ -37,7 +39,8 @@ else
 	vgextend "$VG_NAME" "$PARTITION"
 fi
 
-if ! lvs "/dev/$VG_NAME/$LV_NAME" &>/dev/null; then
+if ! lvs "$VG_NAME/$LV_NAME" &>/dev/null; then
+	lksdmflks
 	echo "Creating logical volume $LV_NAME..."
 	lvcreate -L "$LV_SIZE" -n "$LV_NAME" "$VG_NAME"
 	mkfs.xfs "/dev/$VG_NAME/$LV_NAME"
